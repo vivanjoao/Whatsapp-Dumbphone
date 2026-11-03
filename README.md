@@ -93,3 +93,43 @@ To access the server I would recommend to use a cloudflare tunnel
 https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/
 
 When this is done, you can access your WhatsApp on your own domain or IP address.
+
+Security configuration and tests
+-------------------------------
+
+`PASSWORD` is required (at least 12 characters; no default password) and
+`SESSION_SECRET` must contain at least 32 random characters. Generate the latter
+with `openssl rand -hex 32`. Replace all placeholders in `.env.example`.
+An empty `ACCESS_TOKEN` disables bookmark authentication. Existing weak
+configuration must be replaced before restarting.
+
+`LEGACY_TOKEN_URLS=true` preserves bookmark navigation without cookies. Its token
+is a bearer credential: anyone with the URL can read and send messages. Browser
+history and proxy/access logs may retain it. Configure the proxy to omit query
+strings and request bodies; never share bookmark URLs. Responses disable caching
+and referrer forwarding. For browsers with cookies, set `LEGACY_TOKEN_URLS=false`:
+the initial bookmark exchanges the token for a session and redirects to a clean URL.
+
+To revoke bookmark access, rotate or clear `ACCESS_TOKEN` and restart. Rotating
+any authentication credential invalidates existing cookie sessions. Sessions
+expire after 30 days and are encrypted on disk under
+`AUTH_DIR/http-sessions` (default `.wwebjs_auth/http-sessions`), inside the existing
+Docker authentication volume. Protect and back up this directory as sensitive data.
+Run a single gateway instance per WhatsApp profile. Chromium profile locks are
+never automatically deleted; on startup failure, stop other instances and inspect
+the profile before attempting recovery.
+
+Use HTTPS where the target device supports it and set `COOKIE_SECURE=true`.
+Behind a reverse proxy, configure `TRUST_PROXY` with only that proxy's IP/CIDR;
+otherwise leave it unset. HTTP access for legacy devices exposes credentials and
+messages to the network and should be confined to a trusted private network.
+
+Login and send forms have signed, one-hour CSRF fields and work without JavaScript.
+Reload an expired form. Messages must be nonempty and at most 4096 characters;
+recipients must be WhatsApp contact, group or LID identifiers. Until WhatsApp is
+ready, requests return 503. A failed send is never retried automatically: check
+the conversation before sending again because delivery may already have occurred.
+
+Run `npm test` for HTTP/security regression tests. Tests use a fake WhatsApp
+client and never open Chromium or send real messages. Validate legacy browser
+compatibility and actual pairing manually before deployment.
