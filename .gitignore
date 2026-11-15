@@ -4,3 +4,8 @@ node_modules
 .wwebjs_cache
 package-lock.json
 /session
+/target
+/data
+*.db
+*.db-shm
+*.db-wal

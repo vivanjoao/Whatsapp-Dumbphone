@@ -1,0 +1,30 @@
+[package]
+name = "dumbphone-gateway"
+version = "2.0.0"
+edition = "2024"
+rust-version = "1.99.1"
+
+[dependencies]
+anyhow = "1"
+async-trait = "0.1"
+axum = { version = "0.8", features = ["form", "tokio", "http1"] }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+dotenvy = "0.15"
+fs2 = "0.4"
+hex = "0.4"
+hmac = "0.12"
+rand = "0.8"
+qrcode = { version = "0.14", default-features = false }
+serde = { version = "1", features = ["derive"] }
+sha2 = "0.10"
+diesel = { version = "2.3.11", default-features = false, features = ["sqlite", "r2d2"] }
+subtle = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal", "sync", "time", "net"] }
+urlencoding = "2"
+whatsapp-rust = { git = "https://github.com/oxidezap/whatsapp-rust", rev = "f8165f282008935732e0b26d6f5cca5038ecd222", default-features = false, features = ["sqlite-storage", "tokio-transport", "tokio-runtime", "ureq-client", "tokio-native", "signal"] }
+whatsapp-rust-chat-store = { git = "https://github.com/oxidezap/whatsapp-rust", rev = "f8165f282008935732e0b26d6f5cca5038ecd222" }
+
+[dev-dependencies]
+http-body-util = "0.1"
+tempfile = "3"
+tower = { version = "0.5", features = ["util"] }

@@ -1,0 +1,18 @@
+name: Native Rust
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Rust
+        run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt --component clippy
+      - run: cargo +1.99.1 fmt --all --check
+      - run: cargo +1.99.1 clippy --locked --all-targets -- -D warnings
+      - run: cargo +1.99.1 test --locked
+      - name: Build runtime image
+        run: docker build -t dumbphone-gateway:ci .
