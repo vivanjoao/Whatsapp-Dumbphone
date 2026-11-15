@@ -22,7 +22,12 @@ parte do escopo.
 
 ## Produto e segurança
 
-- Preservar HTML simples para tela de 240 px, teclado e formulários sem JavaScript.
+- Preservar HTML simples para telas de 128–240 px, teclado e formulários sem JavaScript.
+- Aplicar layout moderno por CSS progressivo; manter `view=compact` nos links,
+  formulários e redirects. Não carregar CSS moderno nem lista lateral no detalhe
+  compacto; não criar botões sem ação, presença ou confirmações fictícias.
+- Mudanças visuais devem passar pela prévia offline e teste de navegador em telas
+  pequenas e grandes, com JavaScript desativado, sem usar uma conta real.
 - Compatibilidade com Nokia 2660 Flip 4G só pode ser declarada após teste no aparelho.
 - Preservar modo sem cookies; documentar exposição de tokens em URLs e oferecer
   sessão por cookie. HTTPS é fornecido por proxy, não pelo servidor HTTP.

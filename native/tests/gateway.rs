@@ -31,6 +31,8 @@ struct Fake {
     fail: AtomicBool,
     sends: AtomicUsize,
     reads: AtomicUsize,
+    chat_queries: AtomicUsize,
+    fail_sidebar: AtomicBool,
 }
 impl Fake {
     fn new() -> Self {
@@ -39,6 +41,8 @@ impl Fake {
             fail: AtomicBool::new(false),
             sends: AtomicUsize::new(0),
             reads: AtomicUsize::new(0),
+            chat_queries: AtomicUsize::new(0),
+            fail_sidebar: AtomicBool::new(false),
         }
     }
 }
@@ -48,7 +52,8 @@ impl Gateway for Fake {
         self.ready.load(Ordering::SeqCst)
     }
     async fn chats(&self) -> Result<Vec<Chat>, GatewayError> {
-        if self.fail.load(Ordering::SeqCst) {
+        self.chat_queries.fetch_add(1, Ordering::SeqCst);
+        if self.fail.load(Ordering::SeqCst) || self.fail_sidebar.load(Ordering::SeqCst) {
             return Err(GatewayError::Failed);
         }
         Ok(vec![
@@ -297,7 +302,7 @@ async fn content_is_escaped_and_legacy_navigation_works() {
     );
     assert_eq!(f.fake.reads.load(Ordering::SeqCst), 1);
     let list = call(f.router(), "GET", &format!("/?token={TOKEN}"), None, None).await;
-    assert_eq!(list.text.matches("<tr>").count(), 20);
+    assert_eq!(list.text.matches(r#"class="chat-link""#).count(), 20);
 }
 #[tokio::test]
 async fn login_csrf_session_rotation_and_rate_limit() {
@@ -561,4 +566,101 @@ fn second_process_cannot_open_the_same_account_directory() {
     assert!(!result.status.success());
     assert!(String::from_utf8_lossy(&result.stderr).contains("Another gateway owns this DATA_DIR"));
     assert!(!dir.path().join("whatsapp.db").exists());
+}
+
+#[tokio::test]
+async fn compact_layout_preserves_bookmark_and_skips_sidebar_query() {
+    let f = Fixture::new().await;
+    let path = format!("/chat/{ID}?token={TOKEN}&view=compact");
+    let compact = call(f.router(), "GET", &path, None, None).await;
+    assert_eq!(compact.status, 200);
+    assert_eq!(f.fake.chat_queries.load(Ordering::SeqCst), 0);
+    assert!(!compact.text.contains("@media screen"));
+    assert!(!compact.text.contains("class=\"chat-link\""));
+    assert!(
+        compact
+            .text
+            .contains(&format!("href=\"/?token={TOKEN}&amp;view=compact\""))
+    );
+    assert!(compact.text.contains("name=\"view\" value=\"compact\""));
+    let data = form(&[
+        ("token", TOKEN),
+        ("view", "compact"),
+        ("to", ID),
+        ("msg", "From a small phone"),
+        ("csrf", &csrf(&compact.text)),
+    ]);
+    let send = call(f.router(), "POST", "/send", Some(&data), None).await;
+    assert_eq!(send.status, 303);
+    assert_eq!(
+        send.location.as_deref(),
+        Some(format!("/chat/123%40s.whatsapp.net?token={TOKEN}&view=compact").as_str())
+    );
+    let responsive = call(
+        f.router(),
+        "GET",
+        &format!("/chat/{ID}?token={TOKEN}"),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(responsive.status, 200);
+    assert!(responsive.text.contains("@media screen"));
+    assert!(responsive.text.contains("aria-current=\"page\""));
+    assert!(compact.text.len() < responsive.text.len() / 2);
+}
+#[tokio::test]
+async fn sidebar_failure_does_not_hide_messages_or_send_form() {
+    let f = Fixture::new().await;
+    f.fake.fail_sidebar.store(true, Ordering::SeqCst);
+    let page = call(
+        f.router(),
+        "GET",
+        &format!("/chat/{ID}?token={TOKEN}"),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(page.status, 200);
+    assert!(page.text.contains("The chat list could not be loaded"));
+    assert!(page.text.contains("Olá 🦀"));
+    assert!(page.text.contains("action=\"/send\""));
+}
+#[tokio::test]
+async fn compact_login_and_cookie_exchange_keep_the_selected_layout() {
+    let mut f = Fixture::new().await;
+    let page = call(f.router(), "GET", "/?view=compact", None, None).await;
+    assert_eq!(page.status, 401);
+    assert!(!page.text.contains("@media screen"));
+    let data = form(&[
+        ("pw", &config().password),
+        ("view", "compact"),
+        ("csrf", &csrf(&page.text)),
+    ]);
+    let login = call(
+        f.router(),
+        "POST",
+        "/login",
+        Some(&data),
+        page.cookie.as_deref(),
+    )
+    .await;
+    assert_eq!(login.location.as_deref(), Some("/?view=compact"));
+    f.app.config = Arc::new(Config {
+        legacy_token_urls: false,
+        ..config()
+    });
+    let exchange = call(
+        f.router(),
+        "GET",
+        &format!("/chat/{ID}?token={TOKEN}&view=compact"),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(
+        exchange.location.as_deref(),
+        Some("/chat/123%40s.whatsapp.net?view=compact")
+    );
+    assert!(!exchange.location.unwrap().contains(TOKEN));
 }

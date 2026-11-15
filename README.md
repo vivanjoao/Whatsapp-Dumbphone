@@ -11,7 +11,8 @@ eles não comprovam compatibilidade com o serviço nem com um Nokia físico.
 
 ## Funcionalidades
 
-- HTML sem JavaScript, com referência de 240 px, links e formulários por teclado.
+- Layout responsivo com lista lateral no desktop, conversa em uma coluna no celular
+  e modo compacto para 128–240 px, sem JavaScript obrigatório.
 - Até 20 conversas e as 10 mensagens mais recentes por conversa, obtidas do
   histórico local sincronizado. Identificação de remetentes e indicadores de mídia.
 - Login por senha, sessões persistentes de 30 dias e bookmark opcional sem cookies.
@@ -25,6 +26,49 @@ interface. Horários são mostrados em UTC. Mensagens de texto visíveis são li
 a 4096 caracteres por bolha para manter a página pequena. A sincronização recebida
 do telefone determina quanto histórico estará disponível; não é um arquivo
 completo de todas as mensagens da conta.
+
+## Layout responsivo e modo compacto
+
+A interface usa fontes do sistema, CSS local embutido e ícones SVG pequenos.
+Não carrega bibliotecas de UI, fontes, imagens ou scripts externos. Em telas a
+partir de 860 px, a lista lateral e a conversa ficam lado a lado; em celulares,
+a conversa ocupa uma coluna com link para voltar à lista. Envio e atualização
+continuam por formulários/links: não há atualização automática, indicador de
+presença ou confirmação de leitura inventada pela interface.
+
+O link **Compact view** ativa `view=compact`. Por exemplo:
+`https://seu-dominio/?token=SEU_TOKEN&view=compact`. Esse modo omite o CSS de telas
+maiores e a consulta/lista lateral na página da conversa. A escolha acompanha
+login, navegação, atualização e redirecionamento após envio, inclusive sem cookies
+quando o bookmark legado está habilitado. **Responsive view** retorna ao layout
+adaptativo. Telas estreitas também recebem a base simples no modo automático;
+o modo explícito reduz o HTML transferido para aparelhos antigos.
+
+Testes em Chromium verificam larguras de 128 a 1440 px, mas não substituem a
+validação em um Nokia físico nem comprovam suporte a TLS no aparelho.
+
+Para revisar o visual sem conta, QR ou envio real, execute em um terminal:
+
+```sh
+cargo run --locked --example preview
+```
+
+A prévia escuta **somente localhost:3080**, usa conversas fictícias em memória,
+credenciais públicas de teste e banco temporário. Não a exponha como servidor de
+produção. O terminal mostra a URL de acesso; a senha de teste é
+`preview-password-only`. O binário principal não inclui essa prévia.
+
+Em outro terminal, com Python Playwright e seu Chromium instalados:
+
+```sh
+python3 scripts/check_layout.py
+```
+
+Para usar Chromium do sistema, defina `PLAYWRIGHT_CHROMIUM_EXECUTABLE` com o
+caminho do executável. O teste produz capturas em `/tmp/gateway-layout` (ou no
+caminho passado por `--artifacts`) e verifica navegação, envio sem JavaScript e
+sem cookies, formulário sem CSS, mudança de modo e login. Use uma prévia recém
+iniciada para dados de teste consistentes; nunca aponte para uma conta real.
 
 ## Instalação com Docker
 
@@ -65,7 +109,7 @@ cargo build --release --locked
 ./target/release/dumbphone-gateway
 ```
 
-O binário carrega `.env` do diretório atual. Linux é o alvo de container validado;
+O binário carrega `.env` do diretório atual. O container tem Linux como alvo;
 compilação/execução em Windows e macOS precisa de validação nesses sistemas.
 
 ```sh

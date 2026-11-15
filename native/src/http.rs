@@ -129,6 +129,8 @@ fn with_cookie(app: &App, mut response: Response, id: &str, age: i64) -> Respons
 #[derive(Deserialize, Default)]
 struct Bookmark {
     token: Option<String>,
+    #[serde(default)]
+    view: views::Layout,
 }
 enum Principal {
     Session(String),
@@ -153,6 +155,7 @@ async fn authorize(
     headers: &HeaderMap,
     token: Option<&str>,
     path: &str,
+    layout: views::Layout,
 ) -> Result<Principal, Box<Response>> {
     if let (Some(expected), Some(token)) = (&app.config.token, token)
         && auth::equal(expected, token)
@@ -167,7 +170,14 @@ async fn authorize(
             .map_err(|_| Box::new(internal()))?;
         return Err(Box::new(with_cookie(
             app,
-            Redirect::to(path).into_response(),
+            Redirect::to(
+                &views::Context {
+                    token: None,
+                    layout,
+                }
+                .href(path),
+            )
+            .into_response(),
             &id,
             30 * 86400,
         )));
@@ -186,7 +196,17 @@ async fn authorize(
     let csrf = app.auth.issue(&format!("login:{id}"));
     Err(Box::new(with_cookie(
         app,
-        (StatusCode::UNAUTHORIZED, Html(views::login(&csrf))).into_response(),
+        (
+            StatusCode::UNAUTHORIZED,
+            Html(views::login(
+                &csrf,
+                views::Context {
+                    token: None,
+                    layout,
+                },
+            )),
+        )
+            .into_response(),
         &id,
         3600,
     )))
@@ -204,7 +224,7 @@ async fn chats(
     Query(query): Query<Bookmark>,
     headers: HeaderMap,
 ) -> Response {
-    let principal = match authorize(&app, &headers, query.token.as_deref(), "/").await {
+    let principal = match authorize(&app, &headers, query.token.as_deref(), "/", query.view).await {
         Ok(p) => p,
         Err(r) => return *r,
     };
@@ -212,7 +232,14 @@ async fn chats(
         return unavailable();
     }
     match app.gateway.chats().await {
-        Ok(chats) => Html(views::chats(&chats, principal.legacy())).into_response(),
+        Ok(chats) => Html(views::chats(
+            &chats,
+            views::Context {
+                token: principal.legacy(),
+                layout: query.view,
+            },
+        ))
+        .into_response(),
         Err(e) => gateway_error(e),
     }
 }
@@ -230,6 +257,7 @@ async fn conversation(
         &headers,
         query.token.as_deref(),
         &format!("/chat/{}", views::url(&id)),
+        query.view,
     )
     .await
     {
@@ -257,11 +285,26 @@ async fn conversation(
         principal.context(),
         conversation.chat.id
     ));
+    // Sidebar is a bounded local query. Its failure must not hide the open chat.
+    // Explicit compact mode avoids this query and its extra HTML on old phones.
+    let (chats, sidebar_failed) = if query.view == views::Layout::Compact {
+        (Vec::new(), false)
+    } else {
+        match app.gateway.chats().await {
+            Ok(chats) => (chats, false),
+            Err(_) => (Vec::new(), true),
+        }
+    };
     Html(views::conversation(
         &conversation,
+        &chats,
         &csrf,
-        principal.legacy(),
+        views::Context {
+            token: principal.legacy(),
+            layout: query.view,
+        },
         read_failed,
+        sidebar_failed,
     ))
     .into_response()
 }
@@ -270,6 +313,8 @@ struct Login {
     pw: String,
     #[serde(default)]
     csrf: String,
+    #[serde(default)]
+    view: views::Layout,
 }
 async fn login(
     State(app): State<App>,
@@ -310,7 +355,17 @@ async fn login(
     if app.store.login(&new_id, &app.auth.epoch).await.is_err() {
         return internal();
     }
-    with_cookie(&app, Redirect::to("/").into_response(), &new_id, 30 * 86400)
+    let target = views::Context {
+        token: None,
+        layout: form.view,
+    }
+    .href("/");
+    with_cookie(
+        &app,
+        Redirect::to(&target).into_response(),
+        &new_id,
+        30 * 86400,
+    )
 }
 #[derive(Deserialize)]
 struct SendForm {
@@ -319,9 +374,11 @@ struct SendForm {
     #[serde(default)]
     csrf: String,
     token: Option<String>,
+    #[serde(default)]
+    view: views::Layout,
 }
 async fn send(State(app): State<App>, headers: HeaderMap, Form(form): Form<SendForm>) -> Response {
-    let principal = match authorize(&app, &headers, form.token.as_deref(), "/").await {
+    let principal = match authorize(&app, &headers, form.token.as_deref(), "/", form.view).await {
         Ok(p) => p,
         Err(r) => return *r,
     };
@@ -379,9 +436,10 @@ async fn send(State(app): State<App>, headers: HeaderMap, Form(form): Form<SendF
             "Delivery could not be confirmed. Check the conversation before sending again.",
         );
     }
-    let suffix = principal
-        .legacy()
-        .map(|t| format!("?token={}", views::url(t)))
-        .unwrap_or_default();
-    Redirect::to(&format!("/chat/{}{suffix}", views::url(&form.to))).into_response()
+    let target = views::Context {
+        token: principal.legacy(),
+        layout: form.view,
+    }
+    .href(&format!("/chat/{}", views::url(&form.to)));
+    Redirect::to(&target).into_response()
 }
