@@ -19,7 +19,7 @@ use std::{
     net::SocketAddr,
     sync::{
         Arc,
-        atomic::{AtomicBool, AtomicUsize, Ordering},
+        atomic::{AtomicBool, AtomicI32, AtomicUsize, Ordering},
     },
 };
 use tower::ServiceExt;
@@ -33,6 +33,7 @@ struct Fake {
     reads: AtomicUsize,
     chat_queries: AtomicUsize,
     fail_sidebar: AtomicBool,
+    unread: AtomicI32,
 }
 impl Fake {
     fn new() -> Self {
@@ -43,6 +44,7 @@ impl Fake {
             reads: AtomicUsize::new(0),
             chat_queries: AtomicUsize::new(0),
             fail_sidebar: AtomicBool::new(false),
+            unread: AtomicI32::new(1),
         }
     }
 }
@@ -73,7 +75,7 @@ impl Gateway for Fake {
             chat: Chat {
                 id: id.into(),
                 name: "\"<b>Group</b>".into(),
-                unread: 1,
+                unread: self.unread.load(Ordering::SeqCst),
             },
             messages: vec![Message {
                 id: "message-id".into(),
@@ -244,6 +246,18 @@ fn configuration_and_validation() {
     values.insert("PASSWORD".into(), "long-test-password".into());
     values.insert("COOKIE_SECURE".into(), "maybe".into());
     assert!(Config::from_values(values).is_err());
+    for (password, accepted) in [
+        ("a".repeat(1024), true),
+        ("a".repeat(1025), false),
+        ("🦀".repeat(512), true),
+        (format!("{}a", "🦀".repeat(512)), false),
+    ] {
+        let values = HashMap::from([
+            ("PASSWORD".into(), password),
+            ("SESSION_SECRET".into(), "a".repeat(64)),
+        ]);
+        assert_eq!(Config::from_values(values).is_ok(), accepted);
+    }
 }
 #[test]
 fn signatures_bind_context_expiry_and_credentials() {
@@ -353,6 +367,148 @@ async fn login_csrf_session_rotation_and_rate_limit() {
     );
 }
 #[tokio::test]
+async fn login_form_remains_valid_across_anonymous_tabs() {
+    let f = Fixture::new().await;
+    let first = call(f.router(), "GET", "/", None, None).await;
+    let second = call(f.router(), "GET", "/", None, first.cookie.as_deref()).await;
+    assert_eq!(second.cookie, first.cookie);
+    let data = form(&[("pw", &config().password), ("csrf", &csrf(&first.text))]);
+    assert_eq!(
+        call(
+            f.router(),
+            "POST",
+            "/login",
+            Some(&data),
+            second.cookie.as_deref()
+        )
+        .await
+        .status,
+        303
+    );
+    let invalid = call(
+        f.router(),
+        "GET",
+        "/",
+        None,
+        Some("gateway_session=p.invalid"),
+    )
+    .await;
+    assert_ne!(invalid.cookie.as_deref(), Some("gateway_session=p.invalid"));
+}
+
+#[tokio::test]
+async fn manually_unread_conversation_is_marked_read() {
+    let f = Fixture::new().await;
+    f.fake.unread.store(-1, Ordering::SeqCst);
+    let response = call(
+        f.router(),
+        "GET",
+        &format!("/chat/{ID}?token={TOKEN}"),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(response.status, 200);
+    assert_eq!(f.fake.reads.load(Ordering::SeqCst), 1);
+    f.fake.unread.store(0, Ordering::SeqCst);
+    call(
+        f.router(),
+        "GET",
+        &format!("/chat/{ID}?token={TOKEN}"),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(f.fake.reads.load(Ordering::SeqCst), 1);
+}
+
+#[tokio::test]
+async fn uppercase_signature_cannot_bypass_send_deduplication() {
+    let f = Fixture::new().await;
+    let csrf = loop {
+        let page = call(
+            f.router(),
+            "GET",
+            &format!("/chat/{ID}?token={TOKEN}"),
+            None,
+            None,
+        )
+        .await;
+        let value = csrf(&page.text);
+        if value
+            .rsplit_once('.')
+            .unwrap()
+            .1
+            .bytes()
+            .any(|c| (b'a'..=b'f').contains(&c))
+        {
+            break value;
+        }
+    };
+    let (data, signature) = csrf.rsplit_once('.').unwrap();
+    let altered = format!("{data}.{}", signature.to_ascii_uppercase());
+    assert_ne!(csrf, altered);
+    let make = |csrf: &str| {
+        form(&[
+            ("token", TOKEN),
+            ("csrf", csrf),
+            ("to", ID),
+            ("msg", "hello"),
+        ])
+    };
+    assert_eq!(
+        call(f.router(), "POST", "/send", Some(&make(&csrf)), None)
+            .await
+            .status,
+        303
+    );
+    assert_eq!(
+        call(f.router(), "POST", "/send", Some(&make(&altered)), None)
+            .await
+            .status,
+        403
+    );
+    assert_eq!(f.fake.sends.load(Ordering::SeqCst), 1);
+}
+
+#[tokio::test]
+async fn send_counts_unicode_scalars_and_redirects_to_end() {
+    let f = Fixture::new().await;
+    let page = call(
+        f.router(),
+        "GET",
+        &format!("/chat/{ID}?token={TOKEN}"),
+        None,
+        None,
+    )
+    .await;
+    let csrf = csrf(&page.text);
+    let make = |msg: &str| form(&[("token", TOKEN), ("csrf", &csrf), ("to", ID), ("msg", msg)]);
+    let rejected = call(
+        f.router(),
+        "POST",
+        "/send",
+        Some(&make(&"🦀".repeat(4097))),
+        None,
+    )
+    .await;
+    assert_eq!(rejected.status, 400);
+    let sent = call(
+        f.router(),
+        "POST",
+        "/send",
+        Some(&make(&"🦀".repeat(4096))),
+        None,
+    )
+    .await;
+    assert_eq!(sent.status, 303);
+    assert_eq!(
+        sent.location.as_deref(),
+        Some(format!("/chat/123%40s.whatsapp.net?token={TOKEN}#messages-end").as_str())
+    );
+    assert_eq!(f.fake.sends.load(Ordering::SeqCst), 1);
+}
+#[tokio::test]
 async fn send_once_even_for_concurrent_duplicate_submissions() {
     let f = Fixture::new().await;
     let data = send_form(&f).await;
@@ -443,11 +599,11 @@ async fn cookie_exchange_persistence_and_revocation() {
     assert!(!page.text.contains("token="));
     let chat = call(f.router(), "GET", &format!("/chat/{ID}"), None, cookie).await;
     let data = form(&[("to", ID), ("msg", "hello"), ("csrf", &csrf(&chat.text))]);
+    let sent = call(f.router(), "POST", "/send", Some(&data), cookie).await;
+    assert_eq!(sent.status, 303);
     assert_eq!(
-        call(f.router(), "POST", "/send", Some(&data), cookie)
-            .await
-            .status,
-        303
+        sent.location.as_deref(),
+        Some("/chat/123%40s.whatsapp.net#messages-end")
     );
     let changed = Config {
         password: "changed-password".into(),
@@ -594,7 +750,9 @@ async fn compact_layout_preserves_bookmark_and_skips_sidebar_query() {
     assert_eq!(send.status, 303);
     assert_eq!(
         send.location.as_deref(),
-        Some(format!("/chat/123%40s.whatsapp.net?token={TOKEN}&view=compact").as_str())
+        Some(
+            format!("/chat/123%40s.whatsapp.net?token={TOKEN}&view=compact#messages-end").as_str()
+        )
     );
     let responsive = call(
         f.router(),

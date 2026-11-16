@@ -21,6 +21,7 @@ diesel = { version = "2.3.11", default-features = false, features = ["sqlite", "
 subtle = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal", "sync", "time", "net"] }
 urlencoding = "2"
+ureq = { version = "3.5.1", default-features = false, features = ["rustls"] }
 whatsapp-rust = { git = "https://github.com/oxidezap/whatsapp-rust", rev = "f8165f282008935732e0b26d6f5cca5038ecd222", default-features = false, features = ["sqlite-storage", "tokio-transport", "tokio-runtime", "ureq-client", "tokio-native", "signal"] }
 whatsapp-rust-chat-store = { git = "https://github.com/oxidezap/whatsapp-rust", rev = "f8165f282008935732e0b26d6f5cca5038ecd222" }
 

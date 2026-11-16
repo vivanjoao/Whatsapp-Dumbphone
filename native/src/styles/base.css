@@ -11,7 +11,7 @@ textarea{display:block;width:88%;resize:vertical}
 h1,h2,p{margin:0 0 6px}
 h1{font-size:17px;line-height:1.25;word-wrap:break-word;word-break:normal;overflow-wrap:anywhere}
 h2{font-size:15px}
-.app-brand,.avatar,.icon,.chat-subtitle,.sidebar-intro,.sidebar-foot,.welcome,.thread-label,.composer-note,.login-aside{display:none}
+.app-brand,.avatar,.icon,.chat-subtitle,.sidebar-intro,.sidebar-foot,.welcome,.thread-label,.login-aside{display:none}
 .app-shell{width:100%;min-width:0}
 .sidebar{min-width:0}
 .sidebar-header,.thread-header{padding:8px;border-bottom:1px solid #dce4df}
@@ -24,13 +24,14 @@ h2{font-size:15px}
 .chat-name{font-weight:bold}
 .chat-link[aria-current=page]{background:#e6f2ec;border-left:3px solid #12664f}
 .unread-badge{margin-left:3px;color:#12664f;font-size:11px;font-weight:bold}
-.chat-count{font-size:11px;font-weight:normal;color:#66776d}
+.chat-count{font-size:11px;font-weight:normal;color:#536256}
 .page--chat .sidebar{display:none}
 .thread{min-width:0}
 .back-link{display:inline-block;margin-bottom:6px;font-size:11px}
 .thread-subtitle{color:#65736b;font-size:10px}
 .thread-actions{margin-top:5px}
 .thread-scroll{padding:8px;word-wrap:break-word}
+#messages-end{display:block;height:1px}
 .message{margin:0 0 8px;min-width:0}
 .bubble{padding:7px;background:#f3f5f3;border:1px solid #e0e7e1;border-radius:5px;min-width:0}
 .message--own .bubble{background:#e8f4ed}
@@ -39,6 +40,7 @@ h2{font-size:15px}
 .message-time{display:block;text-align:right;font-size:9px;color:#586e61}
 .media-tag{display:block;color:#52645a;font-size:11px;word-wrap:break-word}
 .composer{padding:8px;border-top:1px solid #dce4df}
+.composer-note{margin-top:4px;color:#53645a;font-size:10px}
 .compose-label{display:block;margin-bottom:4px}
 .compose-row button{margin-top:5px}
 .page-footer{padding:8px;border-top:1px solid #e8ede9;color:#65736b;font-size:10px}

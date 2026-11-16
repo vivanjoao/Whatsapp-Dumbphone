@@ -23,7 +23,7 @@ eles não comprovam compatibilidade com o serviço nem com um Nokia físico.
 
 Chamadas, download/reprodução de mídia e envio de anexos não fazem parte desta
 interface. Horários são mostrados em UTC. Mensagens de texto visíveis são limitadas
-a 4096 caracteres por bolha para manter a página pequena. A sincronização recebida
+a 4096 caracteres Unicode por bolha para manter a página pequena. A sincronização recebida
 do telefone determina quanto histórico estará disponível; não é um arquivo
 completo de todas as mensagens da conta.
 
@@ -41,7 +41,10 @@ O link **Compact view** ativa `view=compact`. Por exemplo:
 maiores e a consulta/lista lateral na página da conversa. A escolha acompanha
 login, navegação, atualização e redirecionamento após envio, inclusive sem cookies
 quando o bookmark legado está habilitado. **Responsive view** retorna ao layout
-adaptativo. Telas estreitas também recebem a base simples no modo automático;
+adaptativo. Após enviar ou atualizar uma conversa, uma âncora HTML mostra o fim do
+histórico, inclusive sem JavaScript. O campo não trunca colagens: o servidor valida
+o limite de 4096 caracteres Unicode e rejeita mensagens maiores.
+Telas estreitas também recebem a base simples no modo automático;
 o modo explícito reduz o HTML transferido para aparelhos antigos.
 
 Testes em Chromium verificam larguras de 128 a 1440 px, mas não substituem a
@@ -126,7 +129,7 @@ O CI executa formatação, lint, testes e build do container.
 
 | Variável | Uso |
 | --- | --- |
-| `PASSWORD` | Senha obrigatória, mínimo 12 caracteres |
+| `PASSWORD` | Senha obrigatória, mínimo 12 caracteres e máximo 1024 unidades UTF-16 |
 | `SESSION_SECRET` | Segredo obrigatório, mínimo 32 caracteres aleatórios |
 | `ACCESS_TOKEN` | Vazio ou token hexadecimal com 32–128 caracteres |
 | `LEGACY_TOKEN_URLS` | `true` preserva navegação sem cookies; `false` troca bookmark por cookie |
@@ -141,6 +144,10 @@ usados. O servidor não interpreta cabeçalhos de IP encaminhados. O limite de
 login é de 5 tentativas em 15 minutos por IP de conexão, persistido em SQLite;
 atrás de um proxy as tentativas compartilham o IP desse proxy. Configure limites
 adicionais no proxy se houver vários usuários.
+
+Os formulários de login em várias abas reutilizam o contexto pré-login válido;
+autenticar regenera a sessão. Assinaturas de formulário têm representação
+canônica, para que mudanças de maiúsculas/minúsculas não contornem a deduplicação.
 
 ## Nokia, cookies e HTTPS
 
@@ -187,6 +194,10 @@ processos e portas separados. A arquitetura escala a concorrência HTTP dentro d
 limites e permite separar contas; não oferece distribuição automática de contas.
 SQLite usa WAL e sincronização FULL; o protocolo tem um escritor e dois leitores.
 Os pools web e WhatsApp são distintos; não há uma consulta de rede por listagem.
+A lista resolve nomes pelo contato quando necessário e pagina o histórico local
+para encontrar até 20 conversas suportadas. Newsletters e status não são oferecidos
+como links, pois esta interface atende contatos, LIDs e grupos. Abrir a conversa
+também limpa a marcação manual de não lido.
 
 O recebimento normal usa um hook de persistência antes do ACK, com deduplicação de
 mensagens. Eventos auxiliares/histórico usam mailbox ordenado de 128 eventos. Se
@@ -201,6 +212,19 @@ admissão retornam 503. O prazo HTTP é 30 s; envios têm prazo de 20 s. Um form
 só pode ser submetido uma vez, inclusive após reinício. Falha/timeout é ambíguo:
 verifique a conversa antes de abrir novo formulário e enviar de novo. Não existe
 reenvio automático de submissões pendentes ou incertas.
+
+O cliente HTTP do protocolo possui prazos dentro das operações bloqueantes:
+DNS/conexão de 5 s, espera de headers e inatividade de leitura/escrita de 10 s,
+corpo e requisição completa de 30 s. Downloads que ultrapassarem esses limites
+falham, inclusive durante sincronização; não são concluídos parcialmente como
+se tivessem sucesso. Em redes lentas, investigue a conectividade antes de tentar
+novo pareamento.
+
+O encerramento reserva até 25 s para HTTP, 5 s para o worker WhatsApp, 5 s para
+o histórico e 2 s adicionais para o runtime, abaixo dos 40 s do Compose. Um worker
+bloqueante que exceda o prazo não faz o runtime esperar indefinidamente. O lock
+da conta permanece retido até a saída do processo. Encerramento incompleto retorna
+erro; isso não substitui backup nem garante que toda operação incerta foi concluída.
 
 Não há números comparativos de RAM/CPU/latência nesta entrega. A remoção de Node e
 Chromium é verificável no build; o ganho real depende do histórico, conta e carga.

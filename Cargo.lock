@@ -650,6 +650,7 @@ dependencies = [
  "tempfile",
  "tokio",
  "tower",
+ "ureq",
  "urlencoding",
  "whatsapp-rust",
  "whatsapp-rust-chat-store",

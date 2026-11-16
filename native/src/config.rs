@@ -23,9 +23,10 @@ impl Config {
         let secret = get("SESSION_SECRET");
         ensure!(
             password.chars().count() >= 12
+                && password.encode_utf16().count() <= 1024
                 && !password.starts_with("REPLACE_")
                 && password != "secretpassword",
-            "PASSWORD must be unique and at least 12 characters"
+            "PASSWORD must be unique, at least 12 characters, and at most 1024 UTF-16 units"
         );
         ensure!(
             secret.len() >= 32

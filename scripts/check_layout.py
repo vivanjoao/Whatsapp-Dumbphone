@@ -8,12 +8,52 @@ Chromium, or PLAYWRIGHT_CHROMIUM_EXECUTABLE for an installed browser.
 import argparse
 import os
 from pathlib import Path
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 
 from playwright.sync_api import sync_playwright
 
 TOKEN = "b" * 32  # Public fixture credential, never a production secret.
 CHAT = "/chat/100@s.whatsapp.net"
+
+
+def assert_small_text_contrast(page):
+    ratios = page.evaluate("""() => {
+      const parse = value => value.match(/[\\d.]+/g).slice(0, 3).map(Number);
+      const lum = rgb => rgb.map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; })
+        .reduce((s, v, i) => s + v * [.2126, .7152, .0722][i], 0);
+      const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+      const color = value => {
+        const values = value.match(/[\\d.]+/g).map(Number);
+        return [values.slice(0, 3), values.length > 3 ? values[3] : 1];
+      };
+      const out = {};
+      for (const el of document.querySelectorAll('body *')) {
+        if (typeof el.innerText !== 'string' || !el.innerText.trim() || !el.getClientRects().length || parseFloat(getComputedStyle(el).fontSize) >= 12) continue;
+        const fg = color(getComputedStyle(el).color)[0];
+        let node = el, bg = [255, 255, 255];
+        while (node) {
+          const [layer, alpha] = color(getComputedStyle(node).backgroundColor);
+          bg = layer.map((v, i) => v * alpha + bg[i] * (1 - alpha));
+          if (alpha === 1) break;
+          node = node.parentElement;
+        }
+        const key = el.tagName.toLowerCase() + (el.className && typeof el.className === 'string' ? '.' + el.className.trim().replace(/\\s+/g, '.') : '');
+        out[key] = Math.min(out[key] ?? Infinity, ratio(fg, bg));
+      }
+      return out;
+    }""")
+    assert all(value >= 4.5 for value in ratios.values()), ratios
+
+
+def assert_latest_message_in_scroll(page):
+    bounds = page.evaluate("""() => {
+      const scroll = document.querySelector('.thread-scroll').getBoundingClientRect();
+      const messages = document.querySelectorAll('.thread-scroll .message');
+      const last = messages[messages.length - 1].getBoundingClientRect();
+      return {scroll: {top: scroll.top, bottom: scroll.bottom}, last: {top: last.top, bottom: last.bottom}};
+    }""")
+    assert bounds["last"]["top"] >= bounds["scroll"]["top"], bounds
+    assert bounds["last"]["bottom"] <= bounds["scroll"]["bottom"], bounds
 
 
 def run(base_url: str, artifacts: Path):
@@ -30,6 +70,7 @@ def run(base_url: str, artifacts: Path):
         errors = []
         captures = [
             ("desktop", 1440, 1000, ""),
+            ("desktop-short", 1366, 768, ""),
             ("mobile", 390, 844, ""),
             ("nokia", 240, 320, "&view=compact"),
             ("small-nokia", 128, 160, "&view=compact"),
@@ -48,6 +89,7 @@ def run(base_url: str, artifacts: Path):
             assert response.status == 200
             assert page.locator("script, link[rel=stylesheet], img").count() == 0
             assert page.locator("#message").is_visible()
+            assert_small_text_contrast(page)
             assert page.get_by_role("button", name="Send").is_visible()
             assert page.locator(".message--own").count() > 0
             assert page.locator(".message:not(.message--own)").count() > 0
@@ -87,12 +129,50 @@ def run(base_url: str, artifacts: Path):
         page.wait_for_url("**/chat/**")
         assert parse_qs(urlsplit(page.url).query)["view"] == ["compact"]
         assert page.locator(".message-text").filter(has_text=message).count() == 1
+        assert page.url.endswith("#messages-end"), page.url
+        assert page.locator("#messages-end").is_visible()
+        assert_latest_message_in_scroll(page)
         assert page.locator(".message-text b").count() == 0
         page.get_by_role("link", name="Responsive view").click()
         assert "view" not in parse_qs(urlsplit(page.url).query)
         assert parse_qs(urlsplit(page.url).query)["token"] == [TOKEN]
         page.get_by_role("link", name="Compact view").click()
         assert parse_qs(urlsplit(page.url).query)["view"] == ["compact"]
+        # Browser paste of 4,096 supplementary Unicode scalars remains intact.
+        emoji_message = "🙂" * 4096
+        page.context.grant_permissions(["clipboard-read", "clipboard-write"])
+        page.evaluate("async text => navigator.clipboard.writeText(text)", emoji_message)
+        textarea = page.get_by_label("Message", exact=True)
+        textarea.click()
+        textarea.press("Control+V")
+        assert textarea.input_value() == emoji_message
+        context.close()
+
+        # The same send/refresh flow on desktop verifies the last bubble is
+        # actually inside the clipped history viewport, with application JS off.
+        context = browser.new_context(
+            viewport={"width": 1366, "height": 768}, java_script_enabled=False
+        )
+        page = context.new_page()
+        page.goto(f"{base_url}{CHAT}?token={TOKEN}")
+        assert page.locator(".thread-scroll").evaluate(
+            "el => el.scrollHeight > el.clientHeight"
+        ), "desktop history fixture must overflow the scroll panel"
+        page.get_by_label("Message", exact=True).fill("Desktop post scroll check")
+        page.get_by_role("button", name="Send", exact=True).click()
+        page.wait_for_url("**/chat/**")
+        assert page.url.endswith("#messages-end"), page.url
+        assert_latest_message_in_scroll(page)
+        for _ in range(2):
+            with page.expect_response(
+                lambda response: response.request.resource_type == "document"
+                and unquote(urlsplit(response.url).path) == CHAT,
+                timeout=5000,
+            ) as refresh_response:
+                page.get_by_role("link", name="Refresh conversation").click()
+            assert refresh_response.value.status == 200
+            assert page.url.endswith("#messages-end"), page.url
+            assert_latest_message_in_scroll(page)
         context.close()
 
         # Login, keyboard focus and layout selection with JS disabled.

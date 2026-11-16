@@ -34,12 +34,19 @@ parte do escopo.
 - Proibir segredos padrão, placeholders ativos e autenticação por token vazio.
 - Escapar texto/atributos e codificar URLs. Validar identificadores e mensagens.
 - Proteger POSTs contra CSRF e vincular assinaturas a contexto, ação e destinatário.
+  Exigir representação canônica antes de derivar chaves de deduplicação; reutilizar
+  contexto pré-login válido para permitir múltiplas abas.
 - Não repetir automaticamente envios ambíguos. Persistir reserva antes do efeito
   externo; repetição do formulário deve ser detectada inclusive após reinício.
 - Não registrar mensagens, cookies, tokens, senhas ou QR fora do terminal
   administrativo. Proteger DATA_DIR e nunca versionar dados pessoais ou .env.
-- Não remover locks para forçar acesso a perfis. Encerrar com prazo máximo.
+- Não remover locks para forçar acesso a perfis. Encerrar com prazo máximo,
+  incluindo I/O bloqueante e teardown do runtime, sem liberar o lock antes da saída.
 - Não confundir histórico vazio com falha de sincronização/consulta.
+- Alinhar limites de entrada entre HTML/configuração/servidor; não truncar
+  silenciosamente mensagens Unicode no navegador. Preservar navegação sem JS.
+- Após envio/atualização, manter o fim do histórico visível. Garantir contraste
+  mínimo de 4,5:1 para texto normal pequeno nos fundos usados pela interface.
 
 ## Testes e entrega
 

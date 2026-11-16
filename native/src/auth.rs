@@ -82,6 +82,13 @@ impl Auth {
         {
             return false;
         }
+        if signature.len() != 64
+            || !signature
+                .bytes()
+                .all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
+        {
+            return false;
+        }
         let Ok(signature) = hex::decode(signature) else {
             return false;
         };

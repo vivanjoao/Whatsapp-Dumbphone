@@ -192,8 +192,15 @@ pub fn conversation(
     context: Context<'_>,
     read_failed: bool,
     sidebar_failed: bool,
+    refresh_id: &str,
 ) -> String {
     let path = format!("/chat/{}", url(&conversation.chat.id));
+    let refresh_path = context.href(&path);
+    let separator = if refresh_path.contains('?') { '&' } else { '?' };
+    let refresh_path = format!(
+        "{refresh_path}{separator}refresh={}#messages-end",
+        url(refresh_id)
+    );
     let nav = if context.layout == Layout::Compact {
         String::new()
     } else {
@@ -205,7 +212,7 @@ pub fn conversation(
         icon("back"),
         avatar(&conversation.chat.name, 0),
         escape(&conversation.chat.name),
-        escape(&context.href(&path)),
+        escape(&refresh_path),
         icon("refresh")
     );
     if read_failed {
@@ -224,6 +231,6 @@ pub fn conversation(
             .unwrap_or_default();
         body.push_str(&format!("<article class=\"message{own}\"><div class=\"bubble\"><span class=\"message-author\">{}</span>{media}<p class=\"message-text\">{}</p><time class=\"message-time\" title=\"UTC\">{}</time></div></article>", escape(sender), escape(&msg.text), escape(&msg.time)));
     }
-    body.push_str(&format!("</div><form class=\"composer\" action=\"/send\" method=\"post\">{}{}{}<label class=\"compose-label\" for=\"message\">Message</label><div class=\"compose-row\"><textarea id=\"message\" name=\"msg\" cols=\"12\" rows=\"2\" maxlength=\"4096\" placeholder=\"Write a message…\" required></textarea><button type=\"submit\">Send{}</button></div><p class=\"composer-note\">Send with the button. Refresh to see new messages.</p></form>{}</section>", hidden("to",&conversation.chat.id), hidden("csrf",csrf), context.fields(), icon("send"), footer(&path,context, "Refresh for new messages")));
+    body.push_str(&format!("<span id=\"messages-end\"></span></div><form class=\"composer\" action=\"/send\" method=\"post\">{}{}{}<label class=\"compose-label\" for=\"message\">Message</label><div class=\"compose-row\"><textarea id=\"message\" name=\"msg\" cols=\"12\" rows=\"2\" placeholder=\"Write a message…\" required></textarea><button type=\"submit\">Send{}</button></div><p class=\"composer-note\">Up to 4,096 characters. Refresh to see new messages.</p></form>{}</section>", hidden("to",&conversation.chat.id), hidden("csrf",csrf), context.fields(), icon("send"), footer(&path,context, "Refresh for new messages")));
     page(body, "chat", &conversation.chat.name, context)
 }

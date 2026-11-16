@@ -12,13 +12,13 @@
   .brand-mark{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background:#166b52;color:#fff}
   .brand-mark .icon{width:20px;height:20px}
   .brand-name{font-size:15px;font-weight:700;letter-spacing:-.3px}
-  .brand-note{margin-left:auto;color:#738377;font-size:11px}
+  .brand-note{margin-left:auto;color:#536256;font-size:11px}
   .icon{display:inline-block;width:17px;height:17px;vertical-align:middle;flex:none}
   .app-shell{background:#fff}
   .sidebar-header{padding:22px 20px 16px;border-bottom:0}
   .sidebar-title{display:flex;align-items:center;justify-content:space-between;gap:8px}
   .chat-count{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;border-radius:7px;background:#f0f4ef;font-size:11px;font-weight:600}
-  .sidebar-intro{display:block;margin:5px 0 0;color:#738377;font-size:12px}
+  .sidebar-intro{display:block;margin:5px 0 0;color:#536256;font-size:12px}
   .sidebar-tools{margin-top:16px}
   .text-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;text-decoration:none}
   .text-link:hover{text-decoration:underline}
@@ -30,7 +30,7 @@
   .avatar--1{background:#e9edf6;color:#56638a}.avatar--2{background:#f4ece2;color:#85694c}.avatar--3{background:#efe9f1;color:#7c6384}
   .chat-copy{display:block;min-width:0;flex:1}
   .chat-name{display:block;font-size:13px;font-weight:600}
-  .chat-subtitle{display:block;margin-top:3px;color:#7b887e;font-size:11px}
+  .chat-subtitle{display:block;margin-top:3px;color:#536256;font-size:11px}
   .chat-link[aria-current=page] .chat-name{color:#18583f}
   .unread-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-width:19px;height:19px;padding:0 5px;border-radius:6px;background:#1b7156;color:#fff;font-size:10px;margin:0}
   .thread-header{display:flex;align-items:center;gap:12px;padding:18px 20px;background:#fff}
@@ -44,7 +44,7 @@
   .thread-actions{margin:0;flex-shrink:0}
   .thread-actions .text-link{padding:8px;border:1px solid #e1e8e0;border-radius:8px;font-size:11px}
   .thread-scroll{background:#f4f7f2;padding:22px 18px;min-height:240px}
-  .thread-label{display:block;text-align:center;margin:0 0 24px;color:#7f8b80;font-size:10px;letter-spacing:.5px}
+  .thread-label{display:block;text-align:center;margin:0 0 24px;color:#536256;font-size:10px;letter-spacing:.5px}
   .message{display:flex;margin-bottom:14px}
   .message--own{justify-content:flex-end}
   .bubble{max-width:86%;padding:10px 13px;background:#fff;border:1px solid #e4eae0;border-radius:2px 12px 12px 12px;box-shadow:0 1px 2px #253c2b05}
@@ -59,14 +59,14 @@
   .compose-row{display:flex;gap:10px;align-items:flex-end}
   .compose-row textarea{width:auto;flex:1;min-width:0;min-height:44px;max-height:160px;line-height:1.5;border:1px solid #e0e7dc;border-radius:10px;background:#f6f8f4;padding:10px 12px}
   .compose-row button{display:inline-flex;align-items:center;justify-content:center;gap:7px;margin:0;padding:12px 16px;min-height:44px;flex-shrink:0}
-  .composer-note{display:block;font-size:10px;color:#7d897c;margin:8px 0 0}
+  .composer-note{display:block;font-size:10px;color:#536256;margin:8px 0 0}
   .page-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 20px;font-size:10px;background:#fff}
   .page-footer a{text-decoration:none}
   .notice{margin:0 0 16px;padding:12px;border-radius:8px;font-size:12px}
-  .empty-list{margin:12px;color:#72806f;border:1px dashed #dbe4d5;border-radius:10px;font-size:12px;padding:18px}
+  .empty-list{margin:12px;color:#536256;border:1px dashed #dbe4d5;border-radius:10px;font-size:12px;padding:18px}
   .login-panel{padding:36px 28px}
   .login-panel h1{font-size:28px;letter-spacing:-1px;margin-bottom:12px}
-  .login-description{font-size:14px;color:#6e7e70;line-height:1.7}
+  .login-description{font-size:14px;color:#536256;line-height:1.7}
   .login-panel label{font-size:12px;font-weight:600;margin-top:26px}
   .login-panel input{width:100%;min-height:46px;border-radius:10px;padding:10px 12px}
   .login-panel button{width:100%;min-height:46px;font-size:13px;margin-top:16px}
@@ -80,7 +80,7 @@
   .sidebar,.page--chat .sidebar{display:flex;flex-direction:column;min-height:0;border-right:1px solid #e2e8dc;background:#fff}
   .sidebar-header{flex-shrink:0;padding:26px 22px 18px}
   .chat-list{overflow:auto;flex:1;min-height:0;padding:4px 10px}
-  .sidebar-foot{display:block;padding:17px 22px;color:#889381;font-size:10px;border-top:1px solid #edf0e9}
+  .sidebar-foot{display:block;padding:17px 22px;color:#536256;font-size:10px;border-top:1px solid #edf0e9}
   .thread{display:flex;flex-direction:column;min-height:0}
   .thread-header{flex-shrink:0;padding:20px 28px}
   .thread-header .back-link{display:none}
@@ -94,13 +94,13 @@
   .welcome-icon{display:inline-flex;align-items:center;justify-content:center;width:78px;height:78px;border-radius:26px;background:#e8f1e3;color:#3e7654;margin-bottom:26px}
   .welcome-icon .icon{width:36px;height:36px}
   .welcome h1{font-size:28px;line-height:1.3;letter-spacing:-1px;font-weight:600;margin-bottom:12px}
-  .welcome p{color:#7d8979;font-size:13px;line-height:1.8;margin-bottom:24px}
-  .welcome-hint{display:inline-flex;padding:6px 12px;border:1px solid #dde6d5;border-radius:20px;color:#6b7e62;font-size:10px}
+  .welcome p{color:#536256;font-size:13px;line-height:1.8;margin-bottom:24px}
+  .welcome-hint{display:inline-flex;padding:6px 12px;border:1px solid #dde6d5;border-radius:20px;color:#536256;font-size:10px}
   .page--login .app-shell{display:grid;grid-template-columns:1fr 1fr;height:auto;min-height:540px;max-width:960px}
   .page--login .app-brand{max-width:960px}
   .login-aside{display:flex;align-items:center;justify-content:center;background:#edf3e7;padding:56px}
   .login-aside h2{font-size:32px;line-height:1.25;letter-spacing:-1px;font-weight:600;margin-bottom:16px}
-  .login-aside p{font-size:14px;color:#728168;line-height:1.8}
+  .login-aside p{font-size:14px;color:#536256;line-height:1.8}
   .login-panel{align-self:center;padding:48px}
   .page--login .page-footer{border:0;padding:0;margin-top:28px}
 }

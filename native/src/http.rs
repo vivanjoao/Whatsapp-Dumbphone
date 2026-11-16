@@ -192,7 +192,12 @@ async fn authorize(
     {
         return Ok(Principal::Session(id));
     }
-    let id = format!("p.{}", app.auth.issue("prelogin"));
+    let id = cookie(headers)
+        .filter(|id| {
+            id.strip_prefix("p.")
+                .is_some_and(|value| app.auth.verify("prelogin", value))
+        })
+        .unwrap_or_else(|| format!("p.{}", app.auth.issue("prelogin")));
     let csrf = app.auth.issue(&format!("login:{id}"));
     Err(Box::new(with_cookie(
         app,
@@ -271,7 +276,7 @@ async fn conversation(
         Ok(c) => c,
         Err(e) => return gateway_error(e),
     };
-    let read_failed = if conversation.chat.unread > 0 {
+    let read_failed = if conversation.chat.unread != 0 {
         !matches!(
             tokio::time::timeout(Duration::from_secs(3), app.gateway.mark_read(&conversation))
                 .await,
@@ -295,6 +300,9 @@ async fn conversation(
             Err(_) => (Vec::new(), true),
         }
     };
+    // A fresh public nonce forces Refresh to perform a GET even when the
+    // current URL already points at the end-of-history fragment.
+    let refresh_id = auth::random();
     Html(views::conversation(
         &conversation,
         &chats,
@@ -305,6 +313,7 @@ async fn conversation(
         },
         read_failed,
         sidebar_failed,
+        &refresh_id,
     ))
     .into_response()
 }
@@ -441,5 +450,6 @@ async fn send(State(app): State<App>, headers: HeaderMap, Form(form): Form<SendF
         layout: form.view,
     }
     .href(&format!("/chat/{}", views::url(&form.to)));
+    let target = format!("{target}#messages-end");
     Redirect::to(&target).into_response()
 }
