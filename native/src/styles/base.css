@@ -1,0 +1,55 @@
+/* Small-screen baseline: usable without media queries, flex, grid or scripts. */
+html,body{margin:0;padding:0;background:#fff;color:#202b27;font:12px/1.45 Arial,sans-serif}
+header,footer,main,section,nav,aside,article{display:block}
+*{box-sizing:border-box}
+a{color:#12664f;word-wrap:break-word}
+a:focus,button:focus,input:focus,textarea:focus{outline:2px solid #12664f;outline-offset:2px}
+button,input,textarea{font:inherit}
+button{padding:5px 8px;border:1px solid #12664f;background:#12664f;color:#fff;cursor:pointer}
+input,textarea{max-width:100%;border:1px solid #bccbc3;border-radius:3px;background:#fff;color:#202b27;padding:5px}
+textarea{display:block;width:88%;resize:vertical}
+h1,h2,p{margin:0 0 6px}
+h1{font-size:17px;line-height:1.25;word-wrap:break-word;word-break:normal;overflow-wrap:anywhere}
+h2{font-size:15px}
+.app-brand,.avatar,.icon,.chat-subtitle,.sidebar-intro,.sidebar-foot,.welcome,.thread-label,.login-aside{display:none}
+.app-shell{width:100%;min-width:0}
+.sidebar{min-width:0}
+.sidebar-header,.thread-header{padding:8px;border-bottom:1px solid #dce4df}
+.sidebar-tools{margin-top:5px}
+.text-link{font-size:11px}
+.chat-list{list-style:none;margin:0;padding:0}
+.chat-list li{margin:0;border-bottom:1px solid #e8ede9}
+.chat-link{display:block;padding:8px;text-decoration:none;word-wrap:break-word;word-break:normal;overflow-wrap:anywhere}
+.chat-link:focus,.chat-link:hover{background:#f1f7f3}
+.chat-name{font-weight:bold}
+.chat-link[aria-current=page]{background:#e6f2ec;border-left:3px solid #12664f}
+.unread-badge{margin-left:3px;color:#12664f;font-size:11px;font-weight:bold}
+.chat-count{font-size:11px;font-weight:normal;color:#536256}
+.page--chat .sidebar{display:none}
+.thread{min-width:0}
+.back-link{display:inline-block;margin-bottom:6px;font-size:11px}
+.thread-subtitle{color:#65736b;font-size:10px}
+.thread-actions{margin-top:5px}
+.thread-scroll{padding:8px;word-wrap:break-word}
+#messages-end{display:block;height:1px}
+.message{margin:0 0 8px;min-width:0}
+.bubble{padding:7px;background:#f3f5f3;border:1px solid #e0e7e1;border-radius:5px;min-width:0}
+.message--own .bubble{background:#e8f4ed}
+.message-author{display:block;font-size:11px;font-weight:bold;color:#306a53;word-wrap:break-word}
+.message-text{margin:2px 0;white-space:pre-wrap;word-wrap:break-word;word-break:normal;overflow-wrap:anywhere}
+.message-time{display:block;text-align:right;font-size:9px;color:#586e61}
+.media-tag{display:block;color:#52645a;font-size:11px;word-wrap:break-word}
+.composer{padding:8px;border-top:1px solid #dce4df}
+.composer-note{margin-top:4px;color:#53645a;font-size:10px}
+.compose-label{display:block;margin-bottom:4px}
+.compose-row button{margin-top:5px}
+.page-footer{padding:8px;border-top:1px solid #e8ede9;color:#65736b;font-size:10px}
+.page-footer a{display:inline-block}
+.notice,.empty-list{margin:8px;padding:8px;border:1px solid #dce4df;word-wrap:break-word}
+.notice{background:#fff5dd;color:#644d19}
+.login-panel{padding:12px}
+.login-panel label{display:block;margin:12px 0 5px}
+.login-panel input{width:88%}
+.login-panel button{display:block;margin-top:12px}
+.login-description,.login-note{color:#65736b;font-size:11px}
+.login-note{margin-top:14px}

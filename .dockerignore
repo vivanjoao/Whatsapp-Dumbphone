@@ -1,4 +1,12 @@
-node_modules
-session
+.git
 .env
-npm-debug.log
+.env.*
+!.env.example
+node_modules
+target
+data
+session
+.wwebjs_auth
+.wwebjs_cache
+*.db
+*.db-*

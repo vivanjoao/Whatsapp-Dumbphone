@@ -1,0 +1,107 @@
+/* Enhancements only: the small-screen baseline above remains the fallback. */
+@media screen and (min-width:320px){
+  html{background:#f2f5f1}
+  body{min-height:100vh;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f2f5f1;color:#24362e}
+  a{color:#166b52}
+  button,input,textarea{font:inherit}
+  button{border-radius:10px;font-weight:600;transition:background .15s}
+  button:hover{background:#0c5340}
+  h1{font-size:19px;word-break:normal;overflow-wrap:anywhere;letter-spacing:-.4px}
+  h2{font-size:17px;letter-spacing:-.3px}
+  .app-brand{display:flex;align-items:center;gap:10px;padding:16px 20px;background:#fff;border-bottom:1px solid #e3e9e2}
+  .brand-mark{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background:#166b52;color:#fff}
+  .brand-mark .icon{width:20px;height:20px}
+  .brand-name{font-size:15px;font-weight:700;letter-spacing:-.3px}
+  .brand-note{margin-left:auto;color:#536256;font-size:11px}
+  .icon{display:inline-block;width:17px;height:17px;vertical-align:middle;flex:none}
+  .app-shell{background:#fff}
+  .sidebar-header{padding:22px 20px 16px;border-bottom:0}
+  .sidebar-title{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .chat-count{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;border-radius:7px;background:#f0f4ef;font-size:11px;font-weight:600}
+  .sidebar-intro{display:block;margin:5px 0 0;color:#536256;font-size:12px}
+  .sidebar-tools{margin-top:16px}
+  .text-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;text-decoration:none}
+  .text-link:hover{text-decoration:underline}
+  .chat-list{padding:4px 10px 12px}
+  .chat-list li{border:0}
+  .chat-link{display:flex;align-items:center;gap:12px;padding:13px 12px;border-radius:10px;word-break:normal;overflow-wrap:anywhere}
+  .chat-link[aria-current=page]{border-left:0;background:#eaf3ec}
+  .avatar{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;flex-shrink:0;border-radius:14px;background:#e8eee5;color:#446047;font-weight:650;font-size:14px;letter-spacing:-.5px}
+  .avatar--1{background:#e9edf6;color:#56638a}.avatar--2{background:#f4ece2;color:#85694c}.avatar--3{background:#efe9f1;color:#7c6384}
+  .chat-copy{display:block;min-width:0;flex:1}
+  .chat-name{display:block;font-size:13px;font-weight:600}
+  .chat-subtitle{display:block;margin-top:3px;color:#536256;font-size:11px}
+  .chat-link[aria-current=page] .chat-name{color:#18583f}
+  .unread-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-width:19px;height:19px;padding:0 5px;border-radius:6px;background:#1b7156;color:#fff;font-size:10px;margin:0}
+  .thread-header{display:flex;align-items:center;gap:12px;padding:18px 20px;background:#fff}
+  .thread-person{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+  .thread-person>div{min-width:0}
+  .thread-header h1{font-size:16px;margin-bottom:2px}
+  .thread-subtitle{font-size:11px;display:block}
+  .thread-header .avatar{width:40px;height:40px;border-radius:13px}
+  .back-link{display:inline-flex;align-items:center;gap:4px;margin:0;font-size:12px}
+  .back-link .back-word{display:none}
+  .thread-actions{margin:0;flex-shrink:0}
+  .thread-actions .text-link{padding:8px;border:1px solid #e1e8e0;border-radius:8px;font-size:11px}
+  .thread-scroll{background:#f4f7f2;padding:22px 18px;min-height:240px}
+  .thread-label{display:block;text-align:center;margin:0 0 24px;color:#536256;font-size:10px;letter-spacing:.5px}
+  .message{display:flex;margin-bottom:14px}
+  .message--own{justify-content:flex-end}
+  .bubble{max-width:86%;padding:10px 13px;background:#fff;border:1px solid #e4eae0;border-radius:2px 12px 12px 12px;box-shadow:0 1px 2px #253c2b05}
+  .message--own .bubble{background:#deefdf;border-color:#d6e7d6;border-radius:12px 2px 12px 12px}
+  .message-author{font-size:11px;margin-bottom:4px;color:#427458}
+  .message--own .message-author{display:none}
+  .message-text{font-size:13px;line-height:1.65;word-break:normal;overflow-wrap:anywhere}
+  .message-time{font-size:9px;margin-top:5px;color:#586d55}
+  .media-tag{font-size:11px;background:#f2f5ee;padding:5px 8px;margin-bottom:5px;border-radius:5px}
+  .composer{padding:15px 18px 12px;background:#fff}
+  .compose-label{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0)}
+  .compose-row{display:flex;gap:10px;align-items:flex-end}
+  .compose-row textarea{width:auto;flex:1;min-width:0;min-height:44px;max-height:160px;line-height:1.5;border:1px solid #e0e7dc;border-radius:10px;background:#f6f8f4;padding:10px 12px}
+  .compose-row button{display:inline-flex;align-items:center;justify-content:center;gap:7px;margin:0;padding:12px 16px;min-height:44px;flex-shrink:0}
+  .composer-note{display:block;font-size:10px;color:#536256;margin:8px 0 0}
+  .page-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 20px;font-size:10px;background:#fff}
+  .page-footer a{text-decoration:none}
+  .notice{margin:0 0 16px;padding:12px;border-radius:8px;font-size:12px}
+  .empty-list{margin:12px;color:#536256;border:1px dashed #dbe4d5;border-radius:10px;font-size:12px;padding:18px}
+  .login-panel{padding:36px 28px}
+  .login-panel h1{font-size:28px;letter-spacing:-1px;margin-bottom:12px}
+  .login-description{font-size:14px;color:#536256;line-height:1.7}
+  .login-panel label{font-size:12px;font-weight:600;margin-top:26px}
+  .login-panel input{width:100%;min-height:46px;border-radius:10px;padding:10px 12px}
+  .login-panel button{width:100%;min-height:46px;font-size:13px;margin-top:16px}
+  .login-note{font-size:11px;margin-top:20px;line-height:1.6}
+}
+@media screen and (min-width:860px){
+  body{padding:32px 40px}
+  .app-brand{max-width:1280px;margin:0 auto;padding:0 2px 22px;background:transparent;border:0}
+  .brand-note{font-size:12px}
+  .app-shell{display:grid;grid-template-columns:310px minmax(0,1fr);max-width:1280px;margin:0 auto;height:calc(100vh - 150px);min-height:520px;max-height:960px;border:1px solid #dce4d7;border-radius:16px;overflow:hidden;box-shadow:0 12px 48px #233b2b07}
+  .sidebar,.page--chat .sidebar{display:flex;flex-direction:column;min-height:0;border-right:1px solid #e2e8dc;background:#fff}
+  .sidebar-header{flex-shrink:0;padding:26px 22px 18px}
+  .chat-list{overflow:auto;flex:1;min-height:0;padding:4px 10px}
+  .sidebar-foot{display:block;padding:17px 22px;color:#536256;font-size:10px;border-top:1px solid #edf0e9}
+  .thread{display:flex;flex-direction:column;min-height:0}
+  .thread-header{flex-shrink:0;padding:20px 28px}
+  .thread-header .back-link{display:none}
+  .thread-scroll{flex:1;overflow:auto;min-height:0;padding:28px 36px}
+  .bubble{max-width:78%}
+  .message-text{font-size:14px}
+  .composer{padding:18px 28px 14px;flex-shrink:0}
+  .thread .page-footer{flex-shrink:0;padding:10px 28px}
+  .page--list .welcome{display:flex;align-items:center;justify-content:center;padding:50px;background:#f7f9f4}
+  .welcome-copy{max-width:350px;text-align:center}
+  .welcome-icon{display:inline-flex;align-items:center;justify-content:center;width:78px;height:78px;border-radius:26px;background:#e8f1e3;color:#3e7654;margin-bottom:26px}
+  .welcome-icon .icon{width:36px;height:36px}
+  .welcome h1{font-size:28px;line-height:1.3;letter-spacing:-1px;font-weight:600;margin-bottom:12px}
+  .welcome p{color:#536256;font-size:13px;line-height:1.8;margin-bottom:24px}
+  .welcome-hint{display:inline-flex;padding:6px 12px;border:1px solid #dde6d5;border-radius:20px;color:#536256;font-size:10px}
+  .page--login .app-shell{display:grid;grid-template-columns:1fr 1fr;height:auto;min-height:540px;max-width:960px}
+  .page--login .app-brand{max-width:960px}
+  .login-aside{display:flex;align-items:center;justify-content:center;background:#edf3e7;padding:56px}
+  .login-aside h2{font-size:32px;line-height:1.25;letter-spacing:-1px;font-weight:600;margin-bottom:16px}
+  .login-aside p{font-size:14px;color:#536256;line-height:1.8}
+  .login-panel{align-self:center;padding:48px}
+  .page--login .page-footer{border:0;padding:0;margin-top:28px}
+}
+@media (prefers-reduced-motion:reduce){button{transition:none}}

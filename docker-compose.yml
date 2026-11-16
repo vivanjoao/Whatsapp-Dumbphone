@@ -1,13 +1,20 @@
-version: '3.8'
-
 services:
   whatsapp-gateway:
     build: .
-    container_name: whatsapp-gateway
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
+    environment:
+      DATA_DIR: /data
+      BIND_ADDR: 0.0.0.0:3000
     volumes:
-      - ./session:/app/.wwebjs_auth
+      - native-data:/data
     env_file:
       - .env
+    stop_grace_period: 40s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+volumes:
+  native-data:
